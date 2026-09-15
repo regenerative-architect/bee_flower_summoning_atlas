@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bee Genus Flower-Summoning Atlas — 107 Genera Across All 7 Bee Families</title>
+<meta name="description" content="An offline-first, privacy-respecting habitat-planning atlas covering all 7 bee families and 107 real bee genera, matched to the flowers, bloom timing, and nesting ground they need.">
+<style>
+
+:root {
+  --bg:#09130d; --panel:#10251a; --panel2:#173822; --ink:#eef8ee; --muted:#b8d7be;
+  --accent:#ffcf4a; --leaf:#7ee787; --water:#8bd3ff; --danger:#ff8b8b; --parasite:#cdb1ff;
+  --glass:rgba(255,255,255,.055); --glass-strong:rgba(255,255,255,.09); --glass-border:rgba(255,255,255,.14);
+  --shadow-soft:0 10px 30px rgba(0,0,0,.35); --shadow-deep:0 30px 90px rgba(0,0,0,.5);
+  --serif:"Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+* { box-sizing:border-box }
+html { scroll-behavior:smooth }
+body { margin:0; font-family:var(--sans); background:radial-gradient(circle at 20% 0%,#173822 0,#09130d 35%,#060906 100%); color:var(--ink); line-height:1.65 }
+a { color:var(--water) }
+h1,h2,h3,.kpi { font-family:var(--serif); font-weight:700; letter-spacing:-.01em }
+
+/* Skip link: keyboard users can jump straight past the hero animation */
+.skip-link { position:absolute; left:-999px; top:auto; background:var(--accent); color:#1c1200; padding:.7rem 1rem; border-radius:0 0 10px 0; z-index:100; font-weight:700 }
+.skip-link:focus { left:0; top:0 }
+
+/* ---------- Hero + particle layer ---------- */
+header { min-height:72vh; padding:4rem 1.2rem 2rem; display:grid; place-items:center; text-align:center; position:relative; overflow:hidden }
+header:before { content:""; position:absolute; inset:-20%; background: radial-gradient(circle at 30% 40%,rgba(255,207,74,.18),transparent 22%), radial-gradient(circle at 70% 20%,rgba(126,231,135,.15),transparent 24%), radial-gradient(circle at 60% 80%,rgba(139,211,255,.12),transparent 25%); animation: drift 18s linear infinite alternate }
+@keyframes drift { from{transform:translate3d(-2%,0,0) scale(1)} to{transform:translate3d(2%,2%,0) scale(1.05)} }
+#pollenCanvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; opacity:.85 }
+.hero { position:relative; max-width:1050px; z-index:2 }
+h1 { font-size:clamp(2.1rem,6.6vw,5.2rem); line-height:.97; margin:.2rem 0 }
+.subtitle { font-size:clamp(1.05rem,2vw,1.4rem); color:var(--muted); max-width:900px; margin:1rem auto; font-family:var(--sans) }
+.scope-line { font-size:.95rem; color:var(--muted); max-width:760px; margin:.6rem auto 0; font-family:var(--sans) }
+.badges { display:flex; flex-wrap:wrap; justify-content:center; gap:.6rem; margin-top:1.5rem }
+.badge { border:1px solid var(--glass-border); background:var(--glass); padding:.55rem .8rem; border-radius:999px; backdrop-filter:blur(8px) saturate(140%) }
+
+/* ---------- Sticky TOC nav with scrollspy ---------- */
+nav { position:sticky; top:0; z-index:20; background:rgba(9,19,13,.9); backdrop-filter: blur(14px) saturate(140%); border-bottom:1px solid var(--glass-border); padding:.6rem; overflow:auto; white-space:nowrap }
+nav a { display:inline-block; color:var(--ink); text-decoration:none; margin:.2rem; padding:.45rem .8rem; border-radius:999px; background:var(--glass); font-family:var(--sans); font-size:.92rem; transition:background .15s ease,color .15s ease }
+nav a.active { background:var(--accent); color:#1c1200; font-weight:700 }
+
+main { max-width:1250px; margin:auto; padding:1rem }
+section { margin:2rem 0; padding:1.2rem; background:linear-gradient(180deg,rgba(16,37,26,.88),rgba(12,26,18,.88)); border:1px solid var(--glass-border); border-radius:24px; box-shadow:var(--shadow-soft); position:relative }
+section:before { content:""; position:absolute; inset:0 0 auto 0; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent); border-radius:24px 24px 0 0 }
+h2 { font-size:clamp(1.5rem,3vw,2.5rem); margin:.2rem 0 .8rem }
+p, li, td, th, label, textarea, input, select, button { font-family:var(--sans) }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1rem }
+.card { background:var(--glass); border:1px solid var(--glass-border); border-radius:20px; padding:1rem; position:relative; box-shadow:var(--shadow-soft); backdrop-filter:blur(6px) }
+.card h3 { margin-top:0; color:var(--accent); font-size:1.2rem }
+.kpi { font-size:2.1rem; font-weight:800; color:var(--leaf) }
+.controls { display:grid; grid-template-columns:1fr repeat(3,minmax(120px,180px)); gap:.7rem; margin:1rem 0 }
+input,select,button,textarea { width:100%; border:1px solid var(--glass-border); background:#071009; color:var(--ink); border-radius:14px; padding:.75rem; font-size:.95rem }
+input:focus,select:focus,button:focus,textarea:focus,a:focus { outline:2px solid var(--accent); outline-offset:2px }
+button { cursor:pointer; background:linear-gradient(135deg,var(--accent),#ff9f1c); color:#1c1200; font-weight:800; box-shadow:var(--shadow-soft) }
+button.secondary { background:var(--glass); color:var(--ink); border:1px solid var(--glass-border); font-weight:700 }
+button.small { padding:.4rem .7rem; width:auto; font-size:.82rem }
+.family-card, .genus-card { transition:transform .15s ease,border-color .15s ease }
+.family-card:hover, .genus-card:hover { transform:translateY(-2px); border-color:rgba(255,207,74,.55) }
+.tag { display:inline-block; font-size:.8rem; padding:.25rem .55rem; border-radius:999px; background:rgba(126,231,135,.14); border:1px solid rgba(126,231,135,.3); margin:.15rem .15rem .15rem 0 }
+.tag.region { background:rgba(139,211,255,.14); border-color:rgba(139,211,255,.35) }
+.status-dot { display:inline-block; width:.6rem; height:.6rem; border-radius:50%; margin-right:.4rem; vertical-align:middle }
+.status-secure .status-dot{background:var(--leaf)} .status-concern .status-dot{background:var(--danger)}
+.status-island .status-dot{background:var(--water)} .status-specialist .status-dot{background:var(--accent)}
+.status-kleptoparasite .status-dot{background:var(--parasite)} .status-data-limited .status-dot{background:var(--muted)}
+table { width:100%; border-collapse:collapse; overflow:hidden; border-radius:16px; font-size:.92rem }
+th,td { padding:.7rem; text-align:left; border-bottom:1px solid var(--glass-border); vertical-align:top }
+th { background:rgba(255,207,74,.12); color:var(--accent); cursor:pointer; user-select:none }
+th:hover { background:rgba(255,207,74,.2) }
+details { background:rgba(255,255,255,.045); border:1px solid var(--glass-border); border-radius:16px; margin:.75rem 0; padding:.8rem }
+summary { cursor:pointer; font-weight:800; color:var(--accent) }
+.timeline { display:grid; grid-template-columns:repeat(4,1fr); gap:.7rem }
+@media (max-width:800px) { .controls{grid-template-columns:1fr} .timeline{grid-template-columns:1fr} }
+.month { min-height:120px; background:rgba(255,255,255,.055); border-radius:18px; padding:.8rem; border:1px solid var(--glass-border) }
+.month strong { color:var(--accent) }
+.warning { border-left:6px solid var(--danger); padding:1rem; background:rgba(255,139,139,.09); border-radius:16px }
+.success { border-left:6px solid var(--leaf); padding:1rem; background:rgba(126,231,135,.09); border-radius:16px }
+.note-box { border-left:6px solid var(--water); padding:1rem; background:rgba(139,211,255,.08); border-radius:16px }
+.memory-box { border-left:6px solid var(--parasite); padding:1rem; background:rgba(205,177,255,.08); border-radius:16px }
+footer { padding:2.5rem 1rem 3rem; text-align:center; color:var(--muted) }
+.footer-note { max-width:760px; margin:0 auto 1rem; font-size:.9rem; border:1px solid var(--glass-border); border-radius:16px; padding:1rem; background:var(--glass) }
+.tooltip { border-bottom:1px dotted var(--accent); cursor:help }
+.view-toggle { display:flex; gap:.5rem; margin:.5rem 0 1rem }
+.view-toggle button.active { outline:2px solid var(--accent) }
+.local-tag { background:rgba(205,177,255,.16); border:1px solid rgba(205,177,255,.4); color:var(--parasite); font-size:.78rem; padding:.2rem .5rem; border-radius:999px }
+.count-line { color:var(--muted); font-size:.9rem; margin:.4rem 0 }
+.future-ext { border:1px dashed var(--glass-border); border-radius:14px; padding:.9rem; color:var(--muted); font-size:.9rem }
+.print-note { display:none }
+.visually-hidden { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior:auto }
+  header:before { animation:none }
+  .family-card,.genus-card,button,nav a { transition:none }
+}
+@media print {
+ body { background:white; color:black }
+ nav,button,.controls,#pollenCanvas,.view-toggle { display:none }
+ section,.card { box-shadow:none; border:1px solid #999; background:white; color:black }
+ .print-note { display:block }
+ a { color:black }
+}
+
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<header>
+  <canvas id="pollenCanvas" aria-hidden="true"></canvas>
+  <div class="hero">
+    <div class="badge">🐝 Bee genus → flower family crosswalk, worldwide</div>
+    <h1>Bee Genus Flower-Summoning Atlas</h1>
+    <p class="subtitle">A practical, offline-first habitat-planning tool: match real bee genera to the flowers, bloom timing, and nesting ground they actually need — organized by the true shape of bee taxonomy, not a made-up one.</p>
+    <p class="scope-line">Scope, stated plainly: bees have <strong>7 recognized families</strong> worldwide (all 7 are here) — the real room to grow is in <strong>genera</strong> (roughly 500–580 known worldwide) and <strong>species</strong> (~20,000). This atlas currently profiles <strong>107 real genera</strong> across all 7 families, and is built to grow — see "Add a local record" in the Genus Directory.</p>
+    <div class="badges">
+      <span class="badge">Long-tongued bees</span><span class="badge">Short-tongued bees</span><span class="badge">Spring mining bees</span><span class="badge">Bumble bee rescue</span><span class="badge">Native-first habitat</span><span class="badge">Southern &amp; Northern Hemisphere</span>
+    </div>
+  </div>
+</header>
+<nav aria-label="Table of contents">
+  <a href="#dashboard">Dashboard</a>
+  <a href="#scope">Scope &amp; Honesty</a>
+  <a href="#families">Bee Families</a>
+  <a href="#genera">Genus Directory</a>
+  <a href="#plants">Flower Matrix</a>
+  <a href="#calendar">Bloom Calendar</a>
+  <a href="#extinction">Extinction &amp; Memory</a>
+  <a href="#build">Step-by-Step Build</a>
+  <a href="#risk">Risk Logic</a>
+  <a href="#exports">Export/Reset</a>
+  <a href="#sources">Sources</a>
+</nav>
+<main id="main-content">
+
+<section id="dashboard">
+  <h2>Mission Dashboard 🌸</h2>
+  <div class="grid">
+    <div class="card"><div class="kpi">7</div><p>Bee families on Earth. This is the complete list — Apidae, Megachilidae, Halictidae, Andrenidae, Colletidae, Melittidae, Stenotritidae. There is no ecologically or taxonomically valid way to have more.</p></div>
+    <div class="card"><div class="kpi">107</div><p>Real bee genera profiled here, correctly placed within their families — the level where this atlas actually scales.</p></div>
+    <div class="card"><div class="kpi">~20,000</div><p>Described bee species worldwide. Most of global bee diversity lives at the species level, inside a small number of families.</p></div>
+    <div class="card"><div class="kpi">22</div><p>Flower families in the planting matrix, extended to cover oil-flowers, squash bees, orchid bees, and Southern Hemisphere natives.</p></div>
+    <div class="card"><div class="kpi">3×3×3</div><p>Minimum patch rule: three bloom windows, three plant species per window, three individuals per species.</p></div>
+    <div class="card"><div class="kpi">0</div><p>Default pesticide tolerance for a recovery plot: avoid systemic insecticides and bloom-time spraying.</p></div>
+  </div>
+  <p class="success"><strong>Core rule:</strong> Do not plant "for bees" as a generic category. Plant for tongue length, emergence season, nesting style, and local native plant relationships.</p>
+</section>
+
+<section id="scope">
+  <h2>Scope &amp; Honesty, Up Front 📐</h2>
+  <p>It's worth saying plainly, because it changes how you should use this page: <strong>bee taxonomy has exactly seven families</strong>. That number doesn't grow — it's not a data-collection gap, it's the actual shape of bee evolution, the same way there are only so many families of cats or oak trees. Anyone offering you "1,000 bee families" is offering you a fiction.</p>
+  <p>What <em>does</em> have real room to grow is the layer underneath: roughly <strong>500–580 genera</strong> and about <strong>20,000 species</strong> worldwide, most of them solitary, ground-nesting, and quietly unnoticed. That's where this atlas expands — see the Genus Directory below.</p>
+  <p>One more honesty note, on the word "unextinct": planting flowers cannot revive a species that is genuinely, globally extinct. That is permanent, and no habitat design changes it. What planting <em>can</em> do — prevent further extinctions, and help a species that survives elsewhere recolonize a place it disappeared from — is covered directly in <a href="#extinction">Extinction &amp; Memory</a>, without overstating it.</p>
+</section>
+
+<section id="families">
+  <h2>The 7 Bee Families 🐝</h2>
+  <p>Every bee alive belongs to one of these seven groups. Use the filters to find families matching a mouthpart length, nesting style, or conservation concern relevant to your region.</p>
+  <div class="controls">
+    <input id="search" placeholder="Search bees, flowers, nesting, risk…" aria-label="Search bee families">
+    <select id="morph" aria-label="Filter by mouthpart length"><option value="">All mouthparts</option><option>long</option><option>short</option><option>moderate</option></select>
+    <select id="nest" aria-label="Filter by nesting style"><option value="">All nesting</option><option>ground</option><option>cavity</option><option>wood</option><option>hive</option></select>
+    <select id="riskFilter" aria-label="Filter by risk level"><option value="">All risk</option><option>High</option><option>specialist</option><option>overlooked</option></select>
+  </div>
+  <div id="familyGrid" class="grid"></div>
+</section>
+
+<section id="genera">
+  <h2>Genus Directory: 107 Real Genera 🔎</h2>
+  <p>This is the scaled-up layer. Every entry below is a genuine, documented bee genus, correctly filed under its real family — not an invented category. Well-studied genera (mason bees, bumble bees, sweat bees) get specific notes; less-studied genera are marked <span class="status-data-limited"><span class="status-dot"></span>data-limited</span> so you know to verify specifics with a regional extension office, native plant society, or a source in the <a href="#sources">Source Trail</a> before treating a note as certain.</p>
+  <div class="controls">
+    <input id="genusSearch" placeholder="Search genus, common name, note…" aria-label="Search genus directory">
+    <select id="genusFamily" aria-label="Filter by family"><option value="">All families</option></select>
+    <select id="genusRegion" aria-label="Filter by region"><option value="">All regions</option></select>
+    <select id="genusStatus" aria-label="Filter by conservation status">
+      <option value="">All statuses</option>
+      <option value="secure">Secure</option>
+      <option value="concern">Conservation concern</option>
+      <option value="island">Island endemic risk</option>
+      <option value="specialist">Host-plant specialist</option>
+      <option value="kleptoparasite">Kleptoparasite</option>
+      <option value="data-limited">Data-limited</option>
+    </select>
+  </div>
+  <div class="view-toggle">
+    <button type="button" class="small active" id="viewCards" onclick="setGenusView('cards')">Card view</button>
+    <button type="button" class="small secondary" id="viewTable" onclick="setGenusView('table')">Table view (for scanning quickly)</button>
+  </div>
+  <p class="count-line" id="genusCount" role="status"></p>
+  <div id="genusGrid" class="grid"></div>
+  <div id="genusTableWrap" style="display:none; overflow-x:auto"><table id="genusTable"><thead></thead><tbody></tbody></table></div>
+
+  <div class="card" style="margin-top:1.2rem">
+    <h3>Add a local record 🔒</h3>
+    <p>See a genus in your area that isn't listed, or want to log a local common name and note? Add it here. This is saved <strong>only in this browser</strong> — nothing is uploaded, shared, or sent anywhere.</p>
+    <div class="controls" style="grid-template-columns:1fr 1fr 1fr">
+      <input id="localGenusName" placeholder="Genus or local name" aria-label="Local genus name">
+      <select id="localGenusFamily" aria-label="Which family it belongs to"></select>
+      <input id="localGenusNote" placeholder="Your note (flowers seen on, nesting, date...)" aria-label="Local note">
+    </div>
+    <button type="button" onclick="addLocalGenus()">Save local record</button>
+    <div id="localGenusList" style="margin-top:1rem"></div>
+    <p id="localGenusStatus" role="status" class="count-line"></p>
+  </div>
+</section>
+
+<section id="plants">
+  <h2>Flower Families Most Likely to Muster Bee Groups 🌼</h2>
+  <p>Use this as a procurement matrix. In practice, choose native species from these families that match your ecoregion, soil, moisture, and local invasive-species rules. Rows in gold are additions made to support the newly profiled specialist genera (oil bees, squash bees, orchid bees, Southern Hemisphere natives).</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Flower family</th><th>Examples</th><th>Bee groups served</th><th>Why it works</th></tr></thead>
+    <tbody id="plantsBody"></tbody>
+  </table>
+  </div>
+</section>
+
+<section id="calendar">
+  <h2>Bloom Calendar: Keep the Nectar Gate Open 📅</h2>
+  <p class="note-box">This calendar is written for a temperate <strong>Northern Hemisphere</strong> year. If you're gardening in the Southern Hemisphere (much of the Stenotritidae, Colletidae, and Melittidae range covered here), shift every season by roughly six months — your "early spring" is around September, not March.</p>
+  <div class="timeline">
+    <div class="month"><strong>Early Spring</strong><p>Willow, maple, serviceberry, cherry, spring ephemerals, blueberry relatives. Target: Andrenidae, Colletidae, early Apidae, mason bees.</p></div>
+    <div class="month"><strong>Late Spring</strong><p>Apple, raspberry, clover, lupine, penstemon, borage. Target: Megachilidae, Apidae, Andrenidae.</p></div>
+    <div class="month"><strong>Summer</strong><p>Bee balm, hyssop, sunflower, coneflower, milkweed, mint, tomato/blueberry buzz flowers, squash blooms at dawn. Target: Bombus, Megachile, Halictidae, Peponapis.</p></div>
+    <div class="month"><strong>Fall</strong><p>Asters, goldenrod, late sunflower, native grasses with nesting cover. Target: overwintering queens, late sweat bees, cellophane bees, honey bees.</p></div>
+  </div>
+</section>
+
+<section id="extinction">
+  <h2>Extinction &amp; Memory 🕯️</h2>
+  <p>This section exists because the instinct behind "bring them back" is a good one — it just needs to be pointed at something real. Here is the honest version, which is still hopeful.</p>
+  <div class="grid">
+    <div class="card"><h3>Extinct</h3><p>Gone everywhere, permanently. No garden, seed mix, or habitat plan reverses this. It is the one outcome nothing on this page can undo.</p></div>
+    <div class="card"><h3>Extirpated</h3><p>Gone from one region, but still alive elsewhere. This is where habitat work can genuinely matter — well-planned flower and nesting corridors can let a species recolonize ground it lost.</p></div>
+    <div class="card"><h3>Declining / endangered</h3><p>Still present, shrinking fast. This is the highest-leverage moment for action — several Bombus species and Hawaiian <em>Hylaeus</em> species are here now.</p></div>
+  </div>
+  <p class="memory-box">A number of bee lineages — several Hawaiian <em>Hylaeus</em> (yellow-faced bee) species among them — have not been confirmed in the wild for years and are feared lost, largely to habitat destruction. We name this plainly, without pretending a planting plan changes it, because looking away from real loss isn't peace-aligned — it's just avoidance.</p>
+  <p class="success"><strong>What actually helps:</strong> protecting the specific host plants that specialist genera depend on, keeping habitat corridors intact so extirpated-but-extant species can return, and feeding real observations into community science so declines are caught early enough to act on. The Source Trail below links to Bumble Bee Watch, iNaturalist, and the IUCN SSC Wild Bee Specialist Group — all real, all free, all more rigorous than any single tool like this one.</p>
+</section>
+
+<section id="build">
+  <h2>Step-by-Step Build 🛠️</h2>
+  <details><summary>1. Pick your bee families and genera</summary><p>Use the Genus Directory to shortlist genera plausible for your region and season, not just your continent-scale family list.</p></details>
+  <details><summary>2. Build three bloom windows</summary><p>Spring must feed mining and mason bees. Summer must feed bumble, leafcutter, carpenter, and sweat bees. Fall must feed queen bumble bees and late-season solitary bees.</p></details>
+  <details><summary>3. Layer flower shapes</summary><p>Flat composites and umbels feed short-tongued bees. Tubular flowers feed long-tongued bees. Complex legumes recruit bumble and leafcutter bees. Buzz-pollination flowers support Bombus especially well. Oil-flowers (Malpighiaceae) and squash blooms (Cucurbitaceae) exist specifically for the specialist genera in this atlas.</p></details>
+  <details><summary>4. Add nesting substrate</summary><p>Leave small bare soil patches for ground nesters. Keep hollow and pithy stems standing through winter. Add wood/cavity habitat only if it can be cleaned or replaced to reduce parasite buildup.</p></details>
+  <details><summary>5. Remove silent failure modes</summary><p>No bloom-time insecticides. Reduce mowing. Keep night lighting low. Avoid landscape fabric and thick mulch over all exposed ground.</p></details>
+  <details><summary>6. Track arrivals</summary><p>Use the log below. Count genera and families, not just individual bees. More families and genera present means more ecological redundancy.</p></details>
+  <div class="card">
+    <h3>Field Log</h3>
+    <textarea id="log" rows="8" placeholder="Date, weather, flower, bee family/genus, behavior, notes…"></textarea>
+    <button onclick="saveLog()">Save field log locally</button>
+    <p id="saveStatus" role="status"></p>
+  </div>
+</section>
+
+<section id="risk">
+  <h2>Risk Logic: Why Some Bees Need Different Flowers ⚠️</h2>
+  <div class="grid">
+    <div class="card"><h3>Specialists</h3><p>Some bees depend on one plant genus or family. Generic nectar mixes may not help them unless their host plant is present — see genera tagged "Host-plant specialist" in the directory.</p></div>
+    <div class="card"><h3>Short-tongued families</h3><p>Halictidae, Andrenidae, Colletidae, and many Melittidae need shallow-access flowers: asters, umbels, willow, mustard, and other exposed pollen sources.</p></div>
+    <div class="card"><h3>Long-tongued families</h3><p>Apidae and Megachilidae can exploit deeper flowers: legumes, mints, penstemons, bee balm, and orchard blossoms.</p></div>
+    <div class="card"><h3>Bumble bees</h3><p>Bumble bees need season-long bloom, nesting cover, overwintering refuge, and flowers that reward buzz pollination.</p></div>
+  </div>
+  <p class="warning"><strong>Important:</strong> Honey bee abundance does not prove wild bee recovery. Dense managed hives can sometimes compete with wild bees where floral resources are limited.</p>
+</section>
+
+<section id="exports">
+  <h2>Export, Import, Reset 🔄</h2>
+  <div class="grid">
+    <button onclick="downloadPlan()">Download full plan JSON (families + genera + your notes)</button>
+    <button class="secondary" onclick="resetLog()">Reset local field log</button>
+    <button class="secondary" onclick="resetCustom()">Reset local genus records</button>
+    <button class="secondary" onclick="window.print()">Print / Save PDF</button>
+  </div>
+  <p class="print-note">Printed from the Bee Genus Flower-Summoning Atlas.</p>
+  <p class="future-ext">Future extension: syncing local records across devices would need a server and an account system, which this offline-first tool deliberately doesn't have. Export the JSON above and re-import it manually on another device in the meantime.</p>
+</section>
+
+<section id="sources">
+  <h2>Source Trail 🔎</h2>
+  <ul>
+    <li><a href="https://xerces.org/pollinator-conservation/pollinator-friendly-plant-lists">Xerces Society – Pollinator-friendly plant lists</a></li>
+    <li><a href="https://xerces.org/endangered-species/wild-bees">Xerces Society – Wild bee conservation</a></li>
+    <li><a href="https://www.fs.usda.gov/managing-land/wildflowers/pollinators/gardening">US Forest Service – Gardening for Pollinators</a></li>
+    <li><a href="https://www.nrcs.usda.gov/news/recent-report-reveals-native-bees-favorite-flowers">USDA NRCS – Native bees' favorite flowers report</a></li>
+    <li><a href="https://www.bugguide.net/node/view/475348">BugGuide – Native Bees of North America: long/short-tongued families</a></li>
+    <li><a href="https://extension.umaine.edu/publications/wp-content/uploads/sites/52/2015/04/7153.pdf">University of Maine Extension – Understanding Native Bees</a></li>
+    <li><a href="https://portals.iucn.org/library/sites/library/files/documents/RL-4-019.pdf">IUCN European Red List of Bees PDF</a></li>
+    <li><a href="https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/cosewic-assessments-status-reports/rusty-patched-bumble-bee-2022.html">Canada COSEWIC – Rusty-patched Bumble Bee status report</a></li>
+    <li><a href="https://www.gbif.org/species/search?q=Apoidea">GBIF – Global bee genus and species occurrence records</a></li>
+    <li><a href="https://www.discoverlife.org/mp/20q?guide=Bee_genera">Discover Life – World genera of bees (Apoidea)</a></li>
+    <li><a href="https://www.bumblebeewatch.org/">Bumble Bee Watch – community science tracking of North American bumble bees</a></li>
+    <li><a href="https://www.inaturalist.org/">iNaturalist – global community science observation platform, useful for logging any bee genus sighting</a></li>
+    <li><a href="https://wild-bee.org/">IUCN SSC Wild Bee Specialist Group</a></li>
+  </ul>
+  <p>These sources support the core rules: native-first floral diversity, season-long bloom, shallow versus deep flower matching, and special concern for declining wild bees such as several bumble bee groups and island-endemic genera.</p>
+</section>
+
+</main>
+<footer>
+  <div class="footer-note">
+    <strong>Zero Harm &amp; Anti-Coercion:</strong> this tool is built to help you plant, observe, and record — never to pressure, track, rank, shame, or nudge anyone. There is no analytics, no telemetry, no hidden network call, and no login. The only data this page stores is what you type into the Field Log and Local Records boxes, kept in your own browser via localStorage/IndexedDB, visible only to you, and erasable with the Reset buttons above at any time.
+  </div>
+  <p>Built for practical stewardship: extraction → habitat → redundancy → recovery. 🐝🌱</p>
+</footer>
+
+<script type="application/json" id="families-data">[{"family": "Apidae", "common": "Bumble bees, honey bees, carpenter bees, long-horned bees", "risk": "High for several bumble bee species; honey bee colony counts are managed differently from wild bee status.", "morph": "Mostly long-tongued; many can use deep tubular flowers. Bumble bees can buzz-pollinate.", "nest": "Ground nests, cavities, wood tunnels, managed hives depending on genus.", "flowers": ["Fabaceae: clover, lupine, vetch, alfalfa", "Lamiaceae: bee balm, hyssop, mint, salvia", "Solanaceae: tomato, pepper, eggplant flowers for buzz pollination", "Ericaceae: blueberry, cranberry, huckleberry", "Boraginaceae: borage, comfrey, phacelia", "Scrophulariaceae/Plantaginaceae: penstemon, foxglove, snapdragon"], "summon": "Plant dense blue-purple-yellow patches with some deep corollas and buzz-pollination crops. Keep blooms running from willow/maple in spring to asters/goldenrod in fall.", "examples": "Bombus affinis, Bombus franklini, Bombus occidentalis, Bombus terricola, Bombus pensylvanicus, Xylocopa virginica, Apis mellifera", "genus_count": 33}, {"family": "Megachilidae", "common": "Mason bees, leafcutter bees, wool-carder bees, resin bees", "risk": "Some local declines; many benefit strongly from cavities, stems, mud, and leaf resources.", "morph": "Long-tongued; pollen often carried under abdomen rather than on hind legs.", "nest": "Cavity nests in hollow stems, beetle holes, wood tunnels, reeds, bee blocks if maintained safely.", "flowers": ["Rosaceae: apple, cherry, plum, raspberry, blackberry, strawberry", "Fabaceae: clover, trefoil, lupine", "Asteraceae: sunflower, coreopsis, coneflower, asters", "Lamiaceae: bee balm, mint, lavender, oregano", "Malvaceae: hollyhock, mallow", "Boraginaceae: borage, forget-me-not, phacelia"], "summon": "Add early orchard blossoms, bare mud for mason bees, pithy/hollow stems, and leaf-safe zones. Avoid over-cleaning dead stems.", "examples": "Osmia lignaria, Osmia cornifrons, Megachile rotundata, Anthidium manicatum", "genus_count": 21}, {"family": "Halictidae", "common": "Sweat bees, metallic green bees, alkali bees", "risk": "Mixed; many are common, but specialists and pesticide-exposed populations can be vulnerable.", "morph": "Mostly short-tongued; favor accessible pollen and shallow nectar.", "nest": "Mostly ground nesting; some eusocial, solitary, or communal forms.", "flowers": ["Asteraceae: asters, goldenrod, sunflower, yarrow, fleabane", "Apiaceae: dill, fennel, parsley, carrot, angelica", "Brassicaceae: mustard, radish, canola, arugula flowers", "Rosaceae: cinquefoil, strawberry, serviceberry", "Polygonaceae: buckwheat", "Onagraceae: evening primrose"], "summon": "Create sunny bare-soil microbanks, shallow composite blooms, and small-flower umbels. Avoid mulch blankets over every exposed soil patch.", "examples": "Agapostemon virescens, Augochlora pura, Halictus ligatus, Lasioglossum spp., Nomia melanderi", "genus_count": 16}, {"family": "Andrenidae", "common": "Mining bees, including many spring specialists", "risk": "High vulnerability where spring ephemerals, willow, orchard edges, and sandy ground disappear.", "morph": "Short-tongued to moderate; many are narrow pollen specialists.", "nest": "Ground nesting, often in sandy or well-drained soils; many emerge early.", "flowers": ["Salicaceae: willow, poplar", "Rosaceae: apple, cherry, plum, hawthorn, serviceberry", "Ericaceae: blueberry, cranberry, manzanita", "Asteraceae: dandelion, asters, sunflower relatives", "Brassicaceae: mustard family flowers", "Ranunculaceae: buttercup, anemone"], "summon": "Prioritize early spring bloom before lawns and gardens peak. Keep sandy soil open and avoid early mowing of spring flowers.", "examples": "Andrena cressonii, Andrena erigeniae, Andrena vicina, Perdita spp., Calliopsis spp.", "genus_count": 12}, {"family": "Colletidae", "common": "Cellophane bees, plasterer bees, yellow-faced bees", "risk": "Some European and island species are increasingly at risk; nesting substrate and specialist flowers matter.", "morph": "Short-tongued; often use shallow flowers. Cellophane bees line nests with waterproof secretions.", "nest": "Ground nesting for Colletes; stem/cavity nesting common in Hylaeus.", "flowers": ["Asteraceae: asters, goldenrod, fleabane", "Salicaceae: willow", "Ericaceae: heather, blueberry relatives", "Apiaceae: dill, fennel, wild carrot", "Fabaceae: clover and vetch for some species", "Myrtaceae/protea-region plants for some Southern Hemisphere species"], "summon": "Use massed shallow blooms, late-season asters/goldenrod, and undisturbed soil/stem nesting areas.", "examples": "Colletes inaequalis, Colletes hederae, Hylaeus spp., Euryglossa spp.", "genus_count": 16}, {"family": "Melittidae", "common": "Oil-collecting bees and specialist bees", "risk": "Often overlooked; specialists are vulnerable when host plants vanish.", "morph": "Short to moderate tongues; many have tight floral associations.", "nest": "Mostly ground nesting.", "flowers": ["Primulaceae: loosestrife for Macropis oil bees", "Ericaceae: some heath specialists", "Fabaceae: some specialists", "Asteraceae: some specialists", "Campanulaceae: bellflower-associated species", "Lythraceae: purple loosestrife relatives where native/noninvasive"], "summon": "Protect the host plant first. Specialist bees usually cannot be summoned by generic wildflower mixes alone.", "examples": "Macropis nuda, Macropis europaea, Melitta haemorrhoidalis, Dasypoda hirtipes", "genus_count": 7}, {"family": "Stenotritidae", "common": "Large Australian native bees", "risk": "Regionally constrained; habitat and native flora integrity are central.", "morph": "Short-tongued lineage; ecology is less globally familiar than major cosmopolitan families.", "nest": "Ground nesting in Australian habitats.", "flowers": ["Myrtaceae: eucalyptus, tea-tree, bottlebrush relatives", "Proteaceae: banksia, grevillea", "Fabaceae: native peas", "Asteraceae: native daisies", "Goodeniaceae: scaevola and relatives", "Local Australian native flowering shrubs"], "summon": "Use local Australian native plants rather than imported bee mixes. Match ecoregion and avoid ornamental invasives.", "examples": "Stenotritus spp., Ctenocolletes spp.", "genus_count": 2}]</script>
+<script type="application/json" id="genera-data">[{"genus": "Apis", "family": "Apidae", "common": "Honey bees", "region": "Old World native, now global under management", "morph": "long", "nest": "Cavity / managed hive", "status": "concern", "note": "The only bees most people picture. Vital for large-scale crop pollination, but dense managed hives can crowd out wild bees where flowers are scarce — more hives is not automatically more pollination."}, {"genus": "Bombus", "family": "Apidae", "common": "Bumble bees", "region": "Cold and temperate zones worldwide", "morph": "long, buzz-pollinating", "nest": "Ground / cavity, annual colony", "status": "concern", "note": "Several North American and European species (e.g. the rusty-patched and Franklin's bumble bees) are formally listed as endangered or possibly extinct. Bumble bees need season-long bloom plus undisturbed ground for hibernating queens."}, {"genus": "Xylocopa", "family": "Apidae", "common": "Carpenter bees", "region": "Pantropical to warm temperate, worldwide", "morph": "long", "nest": "Excavated dead wood", "status": "secure", "note": "Large, strong fliers. Sometimes 'nectar rob' deep flowers by biting the base instead of entering — still valuable pollinators for open blooms."}, {"genus": "Ceratina", "family": "Apidae", "common": "Small carpenter bees", "region": "Worldwide", "morph": "short-moderate", "nest": "Pithy plant stems", "status": "secure", "note": "Tiny, often metallic. Nest in broken raspberry canes, sumac, and other pithy stems — leaving dead stems standing through winter directly supports this genus."}, {"genus": "Melipona", "family": "Apidae", "common": "Stingless bees", "region": "Neotropical", "morph": "short", "nest": "Cavity, perennial colony", "status": "concern", "note": "Central to Maya and other Indigenous meliponiculture traditions. Colony losses track tropical deforestation closely."}, {"genus": "Trigona", "family": "Apidae", "common": "Stingless bees", "region": "Pantropical", "morph": "short", "nest": "Cavity, perennial colony", "status": "secure", "note": "Aggressive resin foragers; some species are locally called 'sweat bees' for landing on skin, unrelated to true Halictidae sweat bees."}, {"genus": "Scaptotrigona", "family": "Apidae", "common": "Stingless bees", "region": "Neotropical", "morph": "short", "nest": "Cavity, perennial colony", "status": "data-limited", "note": "Managed in parts of Latin America for honey; wild population trends are less documented than managed-colony numbers."}, {"genus": "Tetragonula", "family": "Apidae", "common": "Stingless bees", "region": "Indomalayan / Australasian", "morph": "short", "nest": "Cavity, perennial colony", "status": "data-limited", "note": "Common in Southeast Asian and northern Australian meliponiculture; genus-level wild status is not well surveyed."}, {"genus": "Euglossa", "family": "Apidae", "common": "Orchid bees", "region": "Neotropical", "morph": "long", "nest": "Ground / cavity", "status": "specialist", "note": "Males collect fragrance compounds from orchids and other plants rather than nectar for their own use — a genuinely bizarre and important pollination relationship for many orchid species."}, {"genus": "Eulaema", "family": "Apidae", "common": "Orchid bees", "region": "Neotropical", "morph": "long", "nest": "Ground / cavity", "status": "specialist", "note": "Larger-bodied orchid bee relatives of Euglossa; same fragrance-collection ecology."}, {"genus": "Eufriesea", "family": "Apidae", "common": "Orchid bees", "region": "Neotropical", "morph": "long", "nest": "Ground / cavity", "status": "specialist", "note": "Another orchid-bee genus; several species show strong sensitivity to forest fragmentation."}, {"genus": "Centris", "family": "Apidae", "common": "Oil-collecting bees", "region": "Neotropical, warm Nearctic", "morph": "long", "nest": "Ground, sometimes wood", "status": "specialist", "note": "Collect floral oils (not nectar) from Malpighiaceae flowers to provision nests — plant the right oil-flower family or this genus will simply pass by."}, {"genus": "Epicharis", "family": "Apidae", "common": "Oil bees", "region": "Neotropical", "morph": "long", "nest": "Ground", "status": "specialist", "note": "Large, fast, oil-collecting relatives of Centris; similar Malpighiaceae dependence."}, {"genus": "Anthophora", "family": "Apidae", "common": "Digger bees", "region": "Holarctic", "morph": "long", "nest": "Ground / soft rock / mud banks", "status": "secure", "note": "Fast, hovering fliers often mistaken for small bumble bees. Favor sloped bare-earth banks for nesting."}, {"genus": "Habropoda", "family": "Apidae", "common": "Digger bees", "region": "Nearctic, some Old World", "morph": "long", "nest": "Ground", "status": "specialist", "note": "Habropoda laboriosa, the 'blueberry bee,' is a keystone early-spring pollinator for blueberry crops."}, {"genus": "Amegilla", "family": "Apidae", "common": "Blue-banded bees", "region": "Old World, esp. Australia", "morph": "long, buzz-pollinating", "nest": "Ground / soft masonry", "status": "secure", "note": "Efficient buzz-pollinators of tomatoes and other Solanaceae; popular subjects of native-bee gardening in Australia."}, {"genus": "Melissodes", "family": "Apidae", "common": "Long-horned bees", "region": "Nearctic", "morph": "long", "nest": "Ground", "status": "specialist", "note": "Named for the males' long antennae. Many species specialize on Asteraceae (sunflowers, asters) — a strong argument for keeping composite flowers in the fall lineup."}, {"genus": "Svastra", "family": "Apidae", "common": "Long-horned bees", "region": "Nearctic", "morph": "long", "nest": "Ground", "status": "specialist", "note": "Sunflower-family specialists, active in mid-to-late summer heat when many other genera slow down."}, {"genus": "Diadasia", "family": "Apidae", "common": "Chimney bees", "region": "Nearctic", "morph": "long", "nest": "Ground, often builds a turret", "status": "specialist", "note": "Some species specialize on cactus flowers, others on mallows; nest entrances often have a distinctive raised earthen collar."}, {"genus": "Melitoma", "family": "Apidae", "common": "Morning-glory bees", "region": "Americas", "morph": "long", "nest": "Ground / wood", "status": "specialist", "note": "Tightly tied to morning glory (Convolvulaceae) bloom, active in the cooler morning hours when those flowers are open."}, {"genus": "Ptilothrix", "family": "Apidae", "common": "Rose-mallow bees", "region": "Americas", "morph": "long", "nest": "Ground, wetland-adjacent", "status": "specialist", "note": "Specialists on Hibiscus and other mallows; often found near wetland margins where their host plants grow."}, {"genus": "Peponapis", "family": "Apidae", "common": "Squash bees", "region": "Americas", "morph": "moderate", "nest": "Ground, beneath squash hills", "status": "specialist", "note": "Active before dawn to match squash-flower opening; an essential, underappreciated pollinator of pumpkins, squash, and gourds."}, {"genus": "Xenoglossa", "family": "Apidae", "common": "Squash bees", "region": "Americas", "morph": "moderate", "nest": "Ground", "status": "specialist", "note": "Close relative of Peponapis with the same pre-dawn squash-flower routine."}, {"genus": "Nomada", "family": "Apidae", "common": "Cuckoo bees", "region": "Holarctic, worldwide", "morph": "n/a — no pollen basket", "nest": "Lays eggs in host nests", "status": "kleptoparasite", "note": "Wasp-like in appearance; females sneak eggs into Andrena and other ground-nesting bees' burrows. Their presence is actually a sign a healthy host-bee population is nearby."}, {"genus": "Epeolus", "family": "Apidae", "common": "Cuckoo bees", "region": "Worldwide", "morph": "n/a", "nest": "Lays eggs in host nests", "status": "kleptoparasite", "note": "Specializes on Colletes nests; genus health is a direct proxy for Colletes health."}, {"genus": "Triepeolus", "family": "Apidae", "common": "Cuckoo bees", "region": "Americas", "morph": "n/a", "nest": "Lays eggs in host nests", "status": "kleptoparasite", "note": "Parasitizes several long-tongued ground-nesting genera, including Melissodes and Svastra."}, {"genus": "Melecta", "family": "Apidae", "common": "Cuckoo bees", "region": "Holarctic", "morph": "n/a", "nest": "Lays eggs in host nests", "status": "kleptoparasite", "note": "Parasitizes Anthophora nests; fuzzy, often pied black-and-white coloring."}, {"genus": "Thyreus", "family": "Apidae", "common": "Cuckoo bees", "region": "Old World", "morph": "n/a", "nest": "Lays eggs in host nests", "status": "kleptoparasite", "note": "Striking blue-spotted cuckoo bees that parasitize Amegilla nests."}, {"genus": "Holcopasites", "family": "Apidae", "common": "Cuckoo bees", "region": "Nearctic", "morph": "n/a", "nest": "Lays eggs in host nests", "status": "kleptoparasite", "note": "Small, ornately patterned parasites of ground-nesting Apidae."}, {"genus": "Coelioxoides", "family": "Apidae", "common": "Cuckoo bees", "region": "Neotropical", "morph": "n/a", "nest": "Lays eggs in host nests", "status": "kleptoparasite", "note": "Parasitizes oil-collecting Tapinotaspidini bees."}, {"genus": "Exoneura", "family": "Apidae", "common": "Small carpenter bees", "region": "Australasian", "morph": "short-moderate", "nest": "Pithy stems, often communal", "status": "data-limited", "note": "Often nests communally in shared stem tunnels — an unusual social arrangement for a small-bee genus."}, {"genus": "Allodape", "family": "Apidae", "common": "Small carpenter bees", "region": "Afrotropical", "morph": "short-moderate", "nest": "Pithy stems, often communal", "status": "data-limited", "note": "African communal stem-nesters; feed larvae progressively rather than sealing a single pollen loaf, unusual among solitary-leaning bees."}, {"genus": "Braunsapis", "family": "Apidae", "common": "Small carpenter bees", "region": "Afrotropical, Indomalayan", "morph": "short-moderate", "nest": "Pithy stems", "status": "data-limited", "note": "Widespread Old World tropical genus with similar communal-stem biology to Allodape and Exoneura."}, {"genus": "Osmia", "family": "Megachilidae", "common": "Mason bees", "region": "Holarctic", "morph": "long", "nest": "Cavity, sealed with mud", "status": "secure", "note": "Extremely efficient early-spring orchard pollinators (Osmia lignaria, O. cornifrona). A few paper tubes or a drilled wood block, cleaned yearly, is often all it takes to host them."}, {"genus": "Megachile", "family": "Megachilidae", "common": "Leafcutter bees", "region": "Worldwide", "morph": "long", "nest": "Cavity, lined with cut leaves", "status": "secure", "note": "Cut clean, circular notches from rose, redbud, or lilac leaves to line brood cells — cosmetic leaf damage, not plant harm."}, {"genus": "Anthidium", "family": "Megachilidae", "common": "Wool-carder bees", "region": "Worldwide", "morph": "long", "nest": "Cavity, lined with plant fuzz", "status": "concern", "note": "Males are unusually territorial and will body-check other bees off 'their' flower patch. The European species A. manicatum is now invasive in North America and can displace native leafcutters."}, {"genus": "Coelioxys", "family": "Megachilidae", "common": "Sharp-tailed cuckoo bees", "region": "Worldwide", "morph": "long", "nest": "Lays eggs in host nests", "status": "kleptoparasite", "note": "Parasitizes Megachile nests; females have a distinctive pointed abdomen used to pierce the host's leaf-cell wall."}, {"genus": "Chelostoma", "family": "Megachilidae", "common": "Small cavity bees", "region": "Holarctic", "morph": "long", "nest": "Cavity", "status": "specialist", "note": "Several species specialize on bellflowers (Campanulaceae) or buttercups — plant the host, not just 'a bee mix.'"}, {"genus": "Heriades", "family": "Megachilidae", "common": "Small resin bees", "region": "Holarctic", "morph": "short-moderate", "nest": "Cavity, resin-sealed", "status": "secure", "note": "Tiny cavity-nesters that seal cells with tree resin rather than mud or leaves."}, {"genus": "Hoplitis", "family": "Megachilidae", "common": "Mason/mining Megachilids", "region": "Holarctic", "morph": "long", "nest": "Cavity or ground, variable", "status": "data-limited", "note": "An ecologically diverse genus — some species nest like Osmia, others burrow in soil or pithy stems."}, {"genus": "Trachusa", "family": "Megachilidae", "common": "Resin and pebble bees", "region": "Holarctic", "morph": "long", "nest": "Ground, cemented with resin/pebbles", "status": "specialist", "note": "Builds unusually durable nest cells cemented with resin and tiny stones."}, {"genus": "Dianthidium", "family": "Megachilidae", "common": "Pebble bees", "region": "Nearctic (arid)", "morph": "long", "nest": "Ground or cavity, resin-pebble", "status": "specialist", "note": "Arid-land specialists that armor their brood cells with a resin-and-gravel shell."}, {"genus": "Lithurgus", "family": "Megachilidae", "common": "Wood-boring Megachilids", "region": "Worldwide (warm regions)", "morph": "long", "nest": "Excavated dead wood", "status": "data-limited", "note": "Bores its own tunnels in wood rather than using existing cavities, unusual for the family."}, {"genus": "Stelis", "family": "Megachilidae", "common": "Cuckoo bees", "region": "Worldwide", "morph": "n/a", "nest": "Lays eggs in host nests", "status": "kleptoparasite", "note": "Broad kleptoparasite of many Megachilidae genera, including Osmia and Hoplitis."}, {"genus": "Ashmeadiella", "family": "Megachilidae", "common": "Small desert Megachilids", "region": "Nearctic (arid)", "morph": "moderate", "nest": "Cavity", "status": "data-limited", "note": "Small-bodied desert specialists of the American Southwest."}, {"genus": "Anthidiellum", "family": "Megachilidae", "common": "Miniature wool-carder bees", "region": "Worldwide", "morph": "short-moderate", "nest": "Cavity or exposed resin nest", "status": "data-limited", "note": "Some species build small exposed resin nests rather than using a hidden cavity."}, {"genus": "Chalicodoma", "family": "Megachilidae", "common": "Old World mason bees", "region": "Palearctic, Afrotropical", "morph": "long", "nest": "Constructed mud nests", "status": "specialist", "note": "Builds free-standing mud nests on rock or bark rather than using a pre-existing cavity — visible, dome-shaped, and easy to overlook as 'just dirt.'"}, {"genus": "Paranthidium", "family": "Megachilidae", "common": "Wool-carder relatives", "region": "Nearctic", "morph": "moderate", "nest": "Ground / cavity", "status": "data-limited", "note": "Composite-flower specialist in parts of its range."}, {"genus": "Rhodanthidium", "family": "Megachilidae", "common": "Mediterranean mason bees", "region": "Palearctic (Mediterranean)", "morph": "long", "nest": "Cavity, resin-sealed", "status": "data-limited", "note": "Regional Mediterranean genus with strong resin-use behavior."}, {"genus": "Icteranthidium", "family": "Megachilidae", "common": "Wool-carder relatives", "region": "Palearctic, Afrotropical", "morph": "moderate", "nest": "Cavity", "status": "data-limited", "note": "Less-studied Old World genus; treat family-level guidance as the default and verify locally."}, {"genus": "Dioxys", "family": "Megachilidae", "common": "Cuckoo bees", "region": "Holarctic", "morph": "n/a", "nest": "Lays eggs in host nests", "status": "kleptoparasite", "note": "Parasitizes Megachile and related genera."}, {"genus": "Wainia", "family": "Megachilidae", "common": "Old World Megachilids", "region": "Palearctic", "morph": "moderate", "nest": "Cavity", "status": "data-limited", "note": "Less commonly documented genus; family-level flower and nesting guidance applies as a default."}, {"genus": "Duckeanthidium", "family": "Megachilidae", "common": "Neotropical wool-carder relatives", "region": "Neotropical", "morph": "moderate", "nest": "Cavity", "status": "data-limited", "note": "A South American genus with limited published natural-history detail — a good candidate for citizen-science observation."}, {"genus": "Aztecanthidium", "family": "Megachilidae", "common": "Neotropical Megachilids", "region": "Neotropical", "morph": "moderate", "nest": "Cavity", "status": "data-limited", "note": "Central American genus; treat as data-limited and defer to regional specialists for specifics."}, {"genus": "Halictus", "family": "Halictidae", "common": "Sweat bees", "region": "Worldwide", "morph": "short-moderate", "nest": "Ground", "status": "secure", "note": "Social flexibility runs the gamut in this genus — some populations are solitary, others form small cooperative nests, depending on climate."}, {"genus": "Lasioglossum", "family": "Halictidae", "common": "Sweat bees", "region": "Worldwide", "morph": "short-moderate", "nest": "Ground", "status": "secure", "note": "The single largest bee genus on Earth by species count. Behaviorally the most diverse genus known — solitary, communal, and eusocial species all exist within it."}, {"genus": "Agapostemon", "family": "Halictidae", "common": "Metallic green sweat bees", "region": "Americas", "morph": "short-moderate", "nest": "Ground", "status": "secure", "note": "Bright metallic green, often nests in aggregations in bare sandy soil; an easy, rewarding genus for beginners to spot."}, {"genus": "Augochlora", "family": "Halictidae", "common": "Metallic green sweat bees", "region": "Neotropical, Nearctic", "morph": "short-moderate", "nest": "Ground / rotting wood", "status": "secure", "note": "Some species nest in decaying logs rather than soil — leaving deadwood in place can directly support this genus."}, {"genus": "Augochlorella", "family": "Halictidae", "common": "Metallic green sweat bees", "region": "Americas", "morph": "short-moderate", "nest": "Ground", "status": "secure", "note": "Common, often overlooked because of its small size relative to its metallic color."}, {"genus": "Augochloropsis", "family": "Halictidae", "common": "Metallic green sweat bees", "region": "Neotropical, Nearctic", "morph": "short-moderate", "nest": "Ground", "status": "data-limited", "note": "Larger-bodied relative of Augochlora and Augochlorella with similar ground-nesting habits."}, {"genus": "Sphecodes", "family": "Halictidae", "common": "Blood bees", "region": "Holarctic, worldwide", "morph": "short", "nest": "Lays eggs in host nests", "status": "kleptoparasite", "note": "Named for the red abdomen common in many species; parasitizes other Halictidae, especially Lasioglossum and Halictus."}, {"genus": "Nomia", "family": "Halictidae", "common": "Alkali bees", "region": "Americas, Old World", "morph": "short-moderate", "nest": "Ground, often in dense aggregations", "status": "specialist", "note": "Nomia melanderi is intensively managed for alfalfa seed pollination in parts of the western United States — a rare example of a wild ground-nesting genus being actively farmed."}, {"genus": "Dufourea", "family": "Halictidae", "common": "Specialist ground bees", "region": "Holarctic", "morph": "short-moderate", "nest": "Ground", "status": "specialist", "note": "Many species are tied to a single plant genus; a generic wildflower mix will not attract them without the specific host present."}, {"genus": "Rophites", "family": "Halictidae", "common": "Specialist ground bees", "region": "Palearctic", "morph": "short-moderate", "nest": "Ground", "status": "specialist", "note": "Old World genus specializing on mint-family (Lamiaceae) relatives in parts of its range."}, {"genus": "Systropha", "family": "Halictidae", "common": "Bindweed specialists", "region": "Palearctic, Afrotropical", "morph": "short-moderate", "nest": "Ground", "status": "specialist", "note": "Tightly associated with bindweed and morning-glory relatives (Convolvulaceae)."}, {"genus": "Patellapis", "family": "Halictidae", "common": "African sweat bees", "region": "Afrotropical", "morph": "short-moderate", "nest": "Ground", "status": "data-limited", "note": "Diverse southern African genus, still being actively described by taxonomists."}, {"genus": "Homalictus", "family": "Halictidae", "common": "Pacific sweat bees", "region": "Indomalayan, Australasian, Pacific islands", "morph": "short-moderate", "nest": "Ground", "status": "island", "note": "Includes island-endemic lineages on Pacific islands, some of which are considered vulnerable due to very restricted ranges."}, {"genus": "Thrinchostoma", "family": "Halictidae", "common": "Long-faced sweat bees", "region": "Afrotropical, Indomalayan", "morph": "moderate", "nest": "Ground / cavity", "status": "data-limited", "note": "Distinctive elongated face; natural history is less documented than for temperate genera."}, {"genus": "Ruizantheda", "family": "Halictidae", "common": "South American sweat bees", "region": "Neotropical (southern)", "morph": "short-moderate", "nest": "Ground", "status": "data-limited", "note": "Andean and southern South American genus, an example of the region's undercatalogued bee diversity."}, {"genus": "Caenohalictus", "family": "Halictidae", "common": "South American sweat bees", "region": "Neotropical", "morph": "short-moderate", "nest": "Ground", "status": "data-limited", "note": "Widespread across South America; treat as data-limited pending more regional study."}, {"genus": "Andrena", "family": "Andrenidae", "common": "Mining bees", "region": "Holarctic", "morph": "short-moderate", "nest": "Ground, often sandy soil", "status": "concern", "note": "The backbone of early spring pollination in temperate gardens and orchards — hundreds of species, many tightly timed to willow, maple, and fruit-tree bloom."}, {"genus": "Perdita", "family": "Andrenidae", "common": "Fairy bees", "region": "Nearctic (esp. deserts)", "morph": "short", "nest": "Ground", "status": "specialist", "note": "Among the smallest bees in the world; many species are extreme specialists on a single desert wildflower genus."}, {"genus": "Calliopsis", "family": "Andrenidae", "common": "Small mining bees", "region": "Nearctic", "morph": "short", "nest": "Ground", "status": "specialist", "note": "Often specializes on legumes or evening-primrose relatives depending on the species."}, {"genus": "Panurgus", "family": "Andrenidae", "common": "Panurgine mining bees", "region": "Palearctic", "morph": "short", "nest": "Ground", "status": "specialist", "note": "Old World Asteraceae specialist, active in open, sparsely vegetated ground."}, {"genus": "Panurginus", "family": "Andrenidae", "common": "Early mining bees", "region": "Holarctic", "morph": "short", "nest": "Ground", "status": "secure", "note": "Emerges very early in spring, often before most Andrena species."}, {"genus": "Protandrena", "family": "Andrenidae", "common": "Mining bees", "region": "Americas", "morph": "short-moderate", "nest": "Ground", "status": "data-limited", "note": "Diverse New World genus with variable floral associations by species."}, {"genus": "Pseudopanurgus", "family": "Andrenidae", "common": "Mining bees", "region": "Nearctic", "morph": "short", "nest": "Ground", "status": "specialist", "note": "Many species are Asteraceae specialists active in mid-to-late summer."}, {"genus": "Oxaea", "family": "Andrenidae", "common": "Large tropical mining bees", "region": "Neotropical", "morph": "moderate", "nest": "Ground", "status": "data-limited", "note": "One of the larger-bodied genera in an otherwise small-bee-dominated family."}, {"genus": "Ancylandrena", "family": "Andrenidae", "common": "Desert mining bees", "region": "Nearctic (arid)", "morph": "short-moderate", "nest": "Ground", "status": "specialist", "note": "Specializes on evening-primrose relatives (Onagraceae) in arid parts of western North America."}, {"genus": "Melitturga", "family": "Andrenidae", "common": "Old World mining bees", "region": "Palearctic", "morph": "short-moderate", "nest": "Ground", "status": "specialist", "note": "Legume specialist with an unusually long face for the family."}, {"genus": "Camptopoeum", "family": "Andrenidae", "common": "Old World mining bees", "region": "Palearctic", "morph": "short", "nest": "Ground", "status": "data-limited", "note": "Small, less-documented Mediterranean and Central Asian genus."}, {"genus": "Alocandrena", "family": "Andrenidae", "common": "Rare mining bees", "region": "Neotropical (Peru)", "morph": "short-moderate", "nest": "Ground", "status": "data-limited", "note": "Known from a very limited range — a reminder of how much of global bee diversity is still poorly surveyed."}, {"genus": "Colletes", "family": "Colletidae", "common": "Cellophane bees", "region": "Worldwide", "morph": "short", "nest": "Ground, cellophane-lined", "status": "secure", "note": "Lines its underground cells with a clear, waterproof secretion — genuinely resembling cellophane. Several species emerge in tight synchrony with a single host plant's bloom."}, {"genus": "Hylaeus", "family": "Colletidae", "common": "Yellow-faced bees", "region": "Worldwide", "morph": "short", "nest": "Cavity / pithy stems", "status": "island", "note": "Unusual among bees for carrying pollen internally in its crop rather than on its body. Several Hawaiian species are among the only bees ever placed on a national endangered-species list, and some have not been confirmed in decades — a sober case study in island extinction risk."}, {"genus": "Leioproctus", "family": "Colletidae", "common": "Plasterer bees", "region": "Australasian, Neotropical", "morph": "short-moderate", "nest": "Ground", "status": "data-limited", "note": "One of the most species-rich genera in the Southern Hemisphere; ecology varies widely by species."}, {"genus": "Ptiloglossa", "family": "Colletidae", "common": "Dawn bees", "region": "Neotropical, Nearctic", "morph": "moderate", "nest": "Ground", "status": "specialist", "note": "Forages in the pre-dawn twilight, tied to flowers that open before sunrise."}, {"genus": "Caupolicana", "family": "Colletidae", "common": "Digger cellophane bees", "region": "Neotropical, Nearctic", "morph": "moderate", "nest": "Ground, deep burrows", "status": "data-limited", "note": "Builds unusually deep nest burrows compared to most ground-nesting bees."}, {"genus": "Euryglossa", "family": "Colletidae", "common": "Australian plasterer bees", "region": "Australian", "morph": "short", "nest": "Ground / cavity", "status": "specialist", "note": "Tied closely to Myrtaceae (eucalyptus and relatives) bloom."}, {"genus": "Euhesma", "family": "Colletidae", "common": "Australian plasterer bees", "region": "Australian", "morph": "short", "nest": "Ground / cavity", "status": "specialist", "note": "Another Myrtaceae-associated genus endemic to Australia."}, {"genus": "Chilicola", "family": "Colletidae", "common": "Andean plasterer bees", "region": "Neotropical (Andes)", "morph": "short-moderate", "nest": "Stems / ground, variable", "status": "data-limited", "note": "Includes some of the very few known parasitic Colletidae, alongside free-living species."}, {"genus": "Xeromelissa", "family": "Colletidae", "common": "Desert plasterer bees", "region": "Neotropical (Chile)", "morph": "short", "nest": "Ground", "status": "specialist", "note": "Adapted to extremely arid Atacama-region habitats."}, {"genus": "Scrapter", "family": "Colletidae", "common": "Southern African plasterer bees", "region": "Afrotropical (southern)", "morph": "short-moderate", "nest": "Ground", "status": "specialist", "note": "Many species are tied to the exceptionally diverse Cape Floristic Region flora."}, {"genus": "Paracolletes", "family": "Colletidae", "common": "Australian plasterer bees", "region": "Australian", "morph": "short-moderate", "nest": "Ground", "status": "data-limited", "note": "Ground-nesting genus endemic to Australia."}, {"genus": "Callomelitta", "family": "Colletidae", "common": "Australian plasterer bees", "region": "Australian", "morph": "short-moderate", "nest": "Ground", "status": "data-limited", "note": "Less-studied Australian endemic genus."}, {"genus": "Niltonia", "family": "Colletidae", "common": "South American plasterer bees", "region": "Neotropical", "morph": "short-moderate", "nest": "Ground", "status": "data-limited", "note": "Known from limited South American records."}, {"genus": "Eulonchopria", "family": "Colletidae", "common": "South American plasterer bees", "region": "Neotropical", "morph": "short-moderate", "nest": "Ground", "status": "data-limited", "note": "Andean genus with sparse published natural history."}, {"genus": "Diphaglossa", "family": "Colletidae", "common": "Chilean plasterer bees", "region": "Neotropical (Chile)", "morph": "moderate", "nest": "Ground", "status": "data-limited", "note": "Large-bodied Chilean endemic genus."}, {"genus": "Hesperocolletes", "family": "Colletidae", "common": "Rare Australian plasterer bees", "region": "Australian (Western Australia)", "morph": "short-moderate", "nest": "Ground", "status": "concern", "note": "Known from very few records and long considered possibly extinct before rediscovery — a genuine case of a bee genus pulled back from the edge."}, {"genus": "Melitta", "family": "Melittidae", "common": "Melittid bees", "region": "Palearctic, Afrotropical", "morph": "short-moderate", "nest": "Ground", "status": "specialist", "note": "Includes strict pollen specialists on legumes, bellflowers, or heather depending on the species."}, {"genus": "Macropis", "family": "Melittidae", "common": "Oil-collecting bees", "region": "Holarctic", "morph": "short-moderate", "nest": "Ground, near wetlands", "status": "specialist", "note": "Collects floral oils from yellow loosestrife (Lysimachia) to waterproof and provision its nest — remove the host plant and the bee has nowhere to go."}, {"genus": "Dasypoda", "family": "Melittidae", "common": "Pantaloon bees", "region": "Palearctic", "morph": "short-moderate", "nest": "Ground", "status": "secure", "note": "Named for the spectacular dense pollen-collecting hairs on the females' hind legs, resembling fluffy pantaloons."}, {"genus": "Meganomia", "family": "Melittidae", "common": "African Melittids", "region": "Afrotropical", "morph": "moderate", "nest": "Ground", "status": "data-limited", "note": "Little-studied African genus within a globally small family."}, {"genus": "Rediviva", "family": "Melittidae", "common": "Oil-collecting bees", "region": "Afrotropical (southern)", "morph": "long (elongated forelegs)", "nest": "Ground", "status": "specialist", "note": "Some species have dramatically elongated forelegs specifically shaped to reach oil glands deep inside Diascia flowers — one of the most precise plant-pollinator matches known."}, {"genus": "Melittilla", "family": "Melittidae", "common": "African Melittids", "region": "Afrotropical", "morph": "short-moderate", "nest": "Ground", "status": "data-limited", "note": "Rarely recorded genus within an already small, poorly surveyed family."}, {"genus": "Promelitta", "family": "Melittidae", "common": "African Melittids", "region": "Afrotropical", "morph": "short-moderate", "nest": "Ground", "status": "data-limited", "note": "One of the least-documented genera in this dataset; a strong candidate for future citizen-science attention."}, {"genus": "Stenotritus", "family": "Stenotritidae", "common": "Giant Australian bees", "region": "Australian", "morph": "short", "nest": "Ground", "status": "specialist", "note": "Among the largest short-tongued bees in the world; tied closely to native Australian flora, especially in sandy heathland."}, {"genus": "Ctenocolletes", "family": "Stenotritidae", "common": "Giant Australian bees", "region": "Australian", "morph": "short", "nest": "Ground", "status": "specialist", "note": "The entire family Stenotritidae contains only these two genera and roughly two dozen species — all found only in Australia."}]</script>
+<script type="application/json" id="plants-data">[["Asteraceae", "Asters, goldenrod, sunflower, coneflower, yarrow", "Halictidae, Colletidae, Megachilidae, Andrenidae", "Shallow accessible pollen; fall rescue blooms."], ["Fabaceae", "Clover, lupine, vetch, alfalfa, native peas", "Apidae, Megachilidae, Melittidae", "Deep/complex flowers; bumble and leafcutter magnet."], ["Lamiaceae", "Bee balm, hyssop, mint, oregano, sage, lavender", "Apidae, Megachilidae", "Tubular nectar; long-tongued bee corridor."], ["Rosaceae", "Apple, cherry, plum, raspberry, strawberry, serviceberry", "Megachilidae, Andrenidae, Halictidae", "Early orchard pulse; mason/mining bee onramp."], ["Ericaceae", "Blueberry, cranberry, huckleberry, heather", "Apidae, Andrenidae, Colletidae", "Buzz-pollination and specialist support."], ["Salicaceae", "Willow, poplar", "Andrenidae, Colletidae, early Apidae", "Critical early spring pollen."], ["Apiaceae", "Dill, fennel, parsley, carrot, angelica", "Halictidae, Colletidae, small bees", "Umbels feed tiny short-tongued bees."], ["Boraginaceae", "Borage, comfrey, phacelia, forget-me-not", "Apidae, Megachilidae", "Long bloom, high nectar/pollen value."], ["Brassicaceae", "Mustard, radish, arugula, canola flowers", "Andrenidae, Halictidae", "Simple accessible flowers; early/shoulder-season support."], ["Onagraceae", "Evening primrose, fireweed", "Halictidae, Megachilidae, Ancylandrena, specialist bees", "Dusk and specialist pathways."], ["Plantaginaceae", "Penstemon, beardtongue, snapdragon relatives", "Apidae, long-tongued bees", "Deep tubular flowers for long tongues."], ["Malvaceae", "Mallow, hollyhock, hibiscus relatives", "Megachilidae, Apidae, Ptilothrix", "Large pollen-rich blossoms."], ["Malpighiaceae", "Tropical oil-flowers (Byrsonima, Galphimia)", "Centris, Epicharis (oil-collecting Apidae)", "Produces floral oil, not nectar — the specific reward oil-bees are built to collect."], ["Cucurbitaceae", "Squash, pumpkin, gourd, melon", "Peponapis, Xenoglossa (squash bees)", "Pre-dawn bloom timed to specialist squash bee foraging."], ["Convolvulaceae", "Morning glory, bindweed", "Melitoma, Systropha", "Morning-only bloom window matched to specialist foraging hours."], ["Campanulaceae", "Bellflower, harebell", "Chelostoma, Melittidae specialists", "Narrow bell-shaped flowers used by a small set of tightly matched genera."], ["Myrtaceae", "Eucalyptus, tea-tree, bottlebrush", "Euryglossa, Euhesma, Stenotritidae, Colletidae (Australian)", "Dominant nectar source across most of Australia's native bee fauna."], ["Proteaceae", "Banksia, grevillea, protea", "Australian native bee genera", "Long flowering spikes support extended foraging seasons in heathland."], ["Cactaceae", "Prickly pear and other cacti", "Diadasia, desert specialist genera", "Large pollen-rich blooms adapted to arid-zone specialist bees."], ["Primulaceae", "Yellow loosestrife (Lysimachia)", "Macropis (oil-collecting Melittidae)", "Sole known floral-oil source for this genus; no substitute host works."], ["Scrophulariaceae", "Foxglove, mullein, figwort", "Long-tongued Apidae and Megachilidae", "Deep tubular flowers overlapping with Plantaginaceae relatives."], ["Polygonaceae", "Buckwheat, knotweed relatives", "Halictidae, small generalist bees", "Long summer bloom window on marginal or sandy soils."]]</script>
+
+<script>
+/* ============================================================
+   DATA LOADING
+   Data lives in <script type="application/json"> tags above so it
+   never has to be hand-escaped into a JS literal. To extend this
+   atlas, add objects to those JSON blocks — the rest of the page
+   (search, filters, table view, export) reads from them automatically.
+   ============================================================ */
+const families = JSON.parse(document.getElementById('families-data').textContent);
+const genera   = JSON.parse(document.getElementById('genera-data').textContent);
+const plantFamilies = JSON.parse(document.getElementById('plants-data').textContent);
+
+/* ============================================================
+   FAMILY GRID (the original 7-family crosswalk)
+   ============================================================ */
+const familyGrid = document.getElementById('familyGrid');
+function renderFamilies(){
+  const q = document.getElementById('search').value.toLowerCase();
+  const morph = document.getElementById('morph').value.toLowerCase();
+  const nest = document.getElementById('nest').value.toLowerCase();
+  const risk = document.getElementById('riskFilter').value.toLowerCase();
+  familyGrid.innerHTML = '';
+  families.filter(f => {
+    const blob = Object.values(f).flat().join(' ').toLowerCase();
+    return (!q || blob.includes(q)) && (!morph || f.morph.toLowerCase().includes(morph)) && (!nest || f.nest.toLowerCase().includes(nest)) && (!risk || f.risk.toLowerCase().includes(risk));
+  }).forEach(f => {
+    const card = document.createElement('article');
+    card.className = 'card family-card';
+    card.innerHTML = `<h3>${f.family}</h3><p><strong>${f.common}</strong></p>
+    <p><span class="tag">${f.morph}</span> <span class="tag region">${f.genus_count} genera profiled here</span></p>
+    <p><strong>Risk:</strong> ${f.risk}</p>
+    <p><strong>Nesting:</strong> ${f.nest}</p>
+    <p><strong>Flowers:</strong></p><ul>${f.flowers.map(x=>`<li>${x}</li>`).join('')}</ul>
+    <p><strong>Summon/muster strategy:</strong> ${f.summon}</p>
+    <p><strong>Examples:</strong> ${f.examples}</p>`;
+    familyGrid.appendChild(card);
+  });
+}
+['search','morph','nest','riskFilter'].forEach(id=>document.getElementById(id).addEventListener('input', renderFamilies));
+renderFamilies();
+
+/* ============================================================
+   GENUS DIRECTORY
+   The scaled-up layer: every real genus, filterable by family,
+   region, and honest conservation status. Two render modes:
+   cards (for browsing) and a sortable table (for fast scanning).
+   ============================================================ */
+const genusFamilySelect = document.getElementById('genusFamily');
+const genusRegionSelect = document.getElementById('genusRegion');
+[...new Set(genera.map(g=>g.family))].forEach(fam=>{
+  const o = document.createElement('option'); o.value = fam; o.textContent = fam; genusFamilySelect.appendChild(o);
+});
+[...new Set(genera.map(g=>g.region))].sort().forEach(r=>{
+  const o = document.createElement('option'); o.value = r; o.textContent = r; genusRegionSelect.appendChild(o);
+});
+
+const STATUS_LABEL = {
+  secure:'Secure', concern:'Conservation concern', island:'Island endemic risk',
+  specialist:'Host-plant specialist', kleptoparasite:'Kleptoparasite', 'data-limited':'Data-limited'
+};
+
+let genusView = 'cards';
+let tableSortKey = 'genus';
+let tableSortAsc = true;
+
+function filteredGenera(){
+  const q = document.getElementById('genusSearch').value.toLowerCase();
+  const fam = genusFamilySelect.value;
+  const region = genusRegionSelect.value;
+  const status = document.getElementById('genusStatus').value;
+  return genera.filter(g=>{
+    const blob = Object.values(g).join(' ').toLowerCase();
+    return (!q || blob.includes(q)) && (!fam || g.family===fam) && (!region || g.region===region) && (!status || g.status===status);
+  });
+}
+
+function genusCardHTML(g){
+  return `<article class="card genus-card status-${g.status}">
+    <h3>${g.genus} <span class="tag">${g.family}</span></h3>
+    <p><strong>${g.common}</strong></p>
+    <p><span class="tag region">${g.region}</span> <span class="tag">${g.morph} tongue</span> <span class="tag">${g.nest}</span></p>
+    <p><span class="status-${g.status}"><span class="status-dot"></span>${STATUS_LABEL[g.status]}</span></p>
+    <p>${g.note}</p>
+  </article>`;
+}
+
+function renderGenusCards(list){
+  document.getElementById('genusGrid').innerHTML = list.map(genusCardHTML).join('');
+}
+
+const TABLE_COLS = [
+  {key:'genus', label:'Genus'}, {key:'family', label:'Family'}, {key:'region', label:'Region'},
+  {key:'morph', label:'Tongue'}, {key:'nest', label:'Nesting'}, {key:'status', label:'Status'}
+];
+function renderGenusTable(list){
+  const sorted = [...list].sort((a,b)=>{
+    const av=(a[tableSortKey]||'').toString().toLowerCase(), bv=(b[tableSortKey]||'').toString().toLowerCase();
+    return (av<bv?-1:av>bv?1:0) * (tableSortAsc?1:-1);
+  });
+  const thead = document.querySelector('#genusTable thead');
+  const tbody = document.querySelector('#genusTable tbody');
+  thead.innerHTML = '<tr>' + TABLE_COLS.map(c=>`<th data-key="${c.key}">${c.label}${tableSortKey===c.key?(tableSortAsc?' ▲':' ▼'):''}</th>`).join('') + '<th>Note</th></tr>';
+  thead.querySelectorAll('th[data-key]').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const key = th.dataset.key;
+      if (tableSortKey===key) tableSortAsc = !tableSortAsc; else { tableSortKey = key; tableSortAsc = true; }
+      renderGenusTable(filteredGenera());
+    });
+  });
+  tbody.innerHTML = sorted.map(g=>`<tr>
+    <td>${g.genus}</td><td>${g.family}</td><td>${g.region}</td><td>${g.morph}</td><td>${g.nest}</td>
+    <td><span class="status-${g.status}"><span class="status-dot"></span>${STATUS_LABEL[g.status]}</span></td>
+    <td>${g.note}</td>
+  </tr>`).join('');
+}
+
+function renderGenera(){
+  const list = filteredGenera();
+  document.getElementById('genusCount').textContent = `Showing ${list.length} of ${genera.length} genera.`;
+  if (genusView==='cards') renderGenusCards(list); else renderGenusTable(list);
+}
+function setGenusView(mode){
+  genusView = mode;
+  document.getElementById('viewCards').classList.toggle('active', mode==='cards');
+  document.getElementById('viewTable').classList.toggle('active', mode==='table');
+  document.getElementById('viewCards').classList.toggle('secondary', mode!=='cards');
+  document.getElementById('viewTable').classList.toggle('secondary', mode!=='table');
+  document.getElementById('genusGrid').style.display = mode==='cards' ? 'grid' : 'none';
+  document.getElementById('genusTableWrap').style.display = mode==='table' ? 'block' : 'none';
+  renderGenera();
+}
+['genusSearch','genusFamily','genusRegion','genusStatus'].forEach(id=>document.getElementById(id).addEventListener('input', renderGenera));
+renderGenera();
+
+/* ============================================================
+   LOCAL-ONLY GENUS RECORDS
+   Fully client-side "extend the atlas yourself" feature. Nothing
+   here ever leaves the browser — no fetch(), no beacon, no backend.
+   Stored under one localStorage key as a JSON array.
+   ============================================================ */
+const LOCAL_KEY = 'bee_atlas_custom_genera_v1';
+const localFamilySelect = document.getElementById('localGenusFamily');
+const placeholderOpt = document.createElement('option');
+placeholderOpt.value = ''; placeholderOpt.textContent = 'Choose family…'; placeholderOpt.disabled = true; placeholderOpt.selected = true;
+localFamilySelect.appendChild(placeholderOpt);
+[...new Set(genera.map(g=>g.family))].forEach(fam=>{
+  const o = document.createElement('option'); o.value = fam; o.textContent = fam;
+  localFamilySelect.appendChild(o);
+});
+function loadLocalGenera(){
+  try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]'); } catch(e){ return []; }
+}
+function saveLocalGenera(list){
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(list));
+}
+function renderLocalGenera(){
+  const list = loadLocalGenera();
+  const wrap = document.getElementById('localGenusList');
+  if (!list.length) { wrap.innerHTML = '<p class="count-line">No local records yet.</p>'; return; }
+  wrap.innerHTML = list.map((r,i)=>`<div class="card" style="margin-bottom:.6rem">
+    <span class="local-tag">🔒 Local to this browser</span>
+    <h3 style="margin-bottom:.2rem">${r.name} <span class="tag">${r.family}</span></h3>
+    <p>${r.note || ''}</p>
+    <button type="button" class="small secondary" onclick="deleteLocalGenus(${i})">Delete this record</button>
+  </div>`).join('');
+}
+function addLocalGenus(){
+  const name = document.getElementById('localGenusName').value.trim();
+  const family = document.getElementById('localGenusFamily').value;
+  const note = document.getElementById('localGenusNote').value.trim();
+  const status = document.getElementById('localGenusStatus');
+  if (!name){ status.textContent = 'Add a genus or local name first.'; return; }
+  if (!family){ status.textContent = 'Choose which family it belongs to first.'; return; }
+  const list = loadLocalGenera();
+  list.push({name, family, note, added:new Date().toISOString()});
+  saveLocalGenera(list);
+  document.getElementById('localGenusName').value = '';
+  document.getElementById('localGenusNote').value = '';
+  status.textContent = 'Saved locally in this browser.';
+  renderLocalGenera();
+}
+function deleteLocalGenus(i){
+  const list = loadLocalGenera();
+  list.splice(i,1);
+  saveLocalGenera(list);
+  renderLocalGenera();
+}
+function resetCustom(){
+  localStorage.removeItem(LOCAL_KEY);
+  renderLocalGenera();
+  document.getElementById('localGenusStatus').textContent = 'Local genus records reset.';
+}
+renderLocalGenera();
+
+/* ============================================================
+   FLOWER MATRIX TABLE
+   ============================================================ */
+document.getElementById('plantsBody').innerHTML = plantFamilies.map(p=>
+  `<tr><td><strong>${p[0]}</strong></td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td></tr>`
+).join('');
+
+/* ============================================================
+   FIELD LOG — local persistence with IndexedDB, falling back to
+   localStorage if IndexedDB is unavailable. No network calls.
+   ============================================================ */
+const DB_NAME = 'bee_atlas_db';
+function openDB(){
+ return new Promise((resolve,reject)=>{
+  const req = indexedDB.open(DB_NAME,1);
+  req.onupgradeneeded = e => e.target.result.createObjectStore('notes');
+  req.onsuccess = e => resolve(e.target.result);
+  req.onerror = e => reject(e);
+ });
+}
+async function saveLog(){
+ const text = document.getElementById('log').value;
+ try {
+  const db = await openDB();
+  const tx = db.transaction('notes','readwrite');
+  tx.objectStore('notes').put(text,'fieldLog');
+  localStorage.setItem('beeFieldLog', text);
+  document.getElementById('saveStatus').textContent = 'Saved locally in this browser. 🐝';
+ } catch(e) {
+  localStorage.setItem('beeFieldLog', text);
+  document.getElementById('saveStatus').textContent = 'IndexedDB unavailable; saved to localStorage fallback.';
+ }
+}
+async function loadLog(){
+ try {
+  const db = await openDB();
+  const tx = db.transaction('notes','readonly');
+  const req = tx.objectStore('notes').get('fieldLog');
+  req.onsuccess = () => document.getElementById('log').value = req.result || localStorage.getItem('beeFieldLog') || '';
+ } catch(e) {
+  document.getElementById('log').value = localStorage.getItem('beeFieldLog') || '';
+ }
+}
+function resetLog(){
+ localStorage.removeItem('beeFieldLog');
+ document.getElementById('log').value='';
+ openDB().then(db=>db.transaction('notes','readwrite').objectStore('notes').delete('fieldLog')).catch(()=>{});
+ document.getElementById('saveStatus').textContent='Local log reset.';
+}
+loadLog();
+
+/* ============================================================
+   EXPORT — bundles families, genera, plant matrix, field log, and
+   local records into one downloadable JSON file. Pure client-side
+   Blob download; nothing is uploaded anywhere.
+   ============================================================ */
+function downloadPlan(){
+ const payload = {
+   created: new Date().toISOString(),
+   families, genera, plantFamilies,
+   fieldLog: document.getElementById('log').value,
+   localGenusRecords: loadLocalGenera()
+ };
+ const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+ const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='bee-genus-flower-plan.json'; a.click(); URL.revokeObjectURL(a.href);
+}
+
+/* ============================================================
+   SCROLLSPY — highlights the current section in the sticky TOC
+   nav using IntersectionObserver (no scroll-event polling).
+   ============================================================ */
+const navLinks = [...document.querySelectorAll('nav a[href^="#"]')];
+const sectionEls = navLinks.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+if ('IntersectionObserver' in window && sectionEls.length){
+  const spy = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if (entry.isIntersecting){
+        const id = '#' + entry.target.id;
+        navLinks.forEach(a=>a.classList.toggle('active', a.getAttribute('href')===id));
+      }
+    });
+  }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+  sectionEls.forEach(s=>spy.observe(s));
+}
+
+/* ============================================================
+   POLLEN PARTICLE CANVAS
+   Soft, glowing drifting motes behind the hero text — purely
+   decorative, purely local (no external image/asset requests),
+   and fully disabled for people who prefer reduced motion.
+   To adapt: change PARTICLE_COUNT, COLORS, or the drift speed.
+   ============================================================ */
+(function(){
+  const canvas = document.getElementById('pollenCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const PARTICLE_COUNT = reduceMotion ? 0 : 46;
+  const COLORS = ['255,207,74', '126,231,135', '139,211,255'];
+  let particles = [];
+  let raf = null;
+
+  function resize(){
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width * devicePixelRatio;
+    canvas.height = rect.height * devicePixelRatio;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+  }
+  function makeParticle(){
+    return {
+      x: Math.random()*canvas.width,
+      y: Math.random()*canvas.height,
+      r: (Math.random()*2.2+0.8) * devicePixelRatio,
+      speed: (Math.random()*0.35+0.08) * devicePixelRatio,
+      drift: (Math.random()-0.5) * 0.4 * devicePixelRatio,
+      glow: Math.random()*0.5+0.35,
+      color: COLORS[Math.floor(Math.random()*COLORS.length)]
+    };
+  }
+  function initParticles(){
+    particles = Array.from({length: PARTICLE_COUNT}, makeParticle);
+  }
+  function drawFrame(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      // soft radial "glow" gives a photorealistic light-bloom feel without any external image asset
+      const grad = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*6);
+      grad.addColorStop(0, `rgba(${p.color},${p.glow})`);
+      grad.addColorStop(1, `rgba(${p.color},0)`);
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r*6,0,Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = `rgba(${p.color},${Math.min(1,p.glow+0.3)})`;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fill();
+      p.y -= p.speed;
+      p.x += p.drift;
+      if (p.y < -20) { p.y = canvas.height + 10; p.x = Math.random()*canvas.width; }
+    });
+  }
+  function loop(){
+    if (document.visibilityState === 'visible') drawFrame();
+    raf = requestAnimationFrame(loop);
+  }
+  resize();
+  initParticles();
+  if (!reduceMotion){
+    loop();
+    window.addEventListener('resize', ()=>{ resize(); });
+  } else {
+    drawFrame(); // static single frame, no animation loop, respects reduced-motion
+  }
+})();
+</script>
+<noscript><main><section><h2>Noscript fallback</h2><p>This atlas still contains the full crosswalk, genus directory, flower matrix, bloom calendar, extinction notes, and source trail as static content once JavaScript loads. Search/filter, the table view, and local saving require JavaScript.</p></section></main></noscript>
+
+</body>
+</html>
